@@ -1,58 +1,426 @@
-# Salesforce DX Project
+# Salesforce 勤怠管理アプリ
 
-Salesforce DX is a development approach that brings source-driven development, team collaboration, and continuous integration to the Salesforce Platform. Instead of working directly in an org through a web browser, you work with metadata as source files in a local DX project, track changes in version control, and deploy through automated processes.
+## 1. 概要
 
-This project template gets you started with the tools and structure you need to build Salesforce applications using source control, scratch orgs, and the Salesforce CLI.
+Salesforceを利用して、社員の出退勤、休憩、勤怠確認、勤怠修正及び休暇を管理する勤怠管理アプリを開発する。
 
-## Prerequisites
+本アプリでは、社員が自身の勤怠情報を登録・確認・修正でき、管理者が全社員の勤怠情報を管理できることを目的とする。
 
-Before you start, make sure you have:
+---
 
-- **Salesforce CLI** - Download from [developer.salesforce.com/tools/salesforcecli](https://developer.salesforce.com/tools/salesforcecli). See [Install Salesforce CLI](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_install_cli.htm) for details.
-- **VS Code with Salesforce Extension Pack** - See [Installation Instructions](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/install.html) for details. Includes the Agentforce Vibes extension.
-- **A development org** - Sign up for a free Developer Edition org [here](https://developer.salesforce.com/signup).
-- **Dev Hub enabled** (optional, required to create scratch orgs) - You can enable Dev Hub in your development org under Setup > Dev Hub.  See [Provide Developers Access to Salesforce DX Tools](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_setup_dx_tools.htm).
+## 2. 開発目的
 
-## Project Structure
+以下を目的として本アプリを開発する。
 
-Your DX project follows this structure:
+* 出退勤情報をSalesforce上で一元管理する
+* 勤務時間を自動計算する
+* 社員自身が勤怠情報を確認・修正できるようにする
+* 管理者が全社員の勤怠状況を確認できるようにする
+* 休暇情報を管理できるようにする
+* 将来的に勤怠に関する通知機能を追加できる構成とする
 
-- **`force-app/main/default/`** - Your metadata source files live in this default package directory. You can configure additional package directories in the `sfdx-project.json` file.
-- **`config/`** - Scratch org definitions and project settings
-- **`scripts/`** - Automation scripts for common tasks
-- **`sfdx-project.json`** - Project manifest that defines package directories, namespace, API version, and other project-level settings
+---
 
-See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm).
+## 3. 利用者
 
-## Get Started
+### 3.1 社員
 
-Ready to start developing? The [Get Started with Salesforce DX](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_get_started_dx.htm) guide walks you through your first project, from creating a scratch org to creating a simple Apex class or LWC to deploying your code to a sandbox.
+社員は、自身の勤怠情報及び休暇情報を管理する。
 
-## Common Salesforce CLI Commands
+主な操作：
 
-Here are common CLI commands that you'll use the most:
+* 出勤打刻
+* 退勤打刻
+* 勤怠確認
+* 勤怠修正
+* 休暇情報の登録・確認
 
-- `sf org login web`: Authorize an org
-- `sf org open`: Open your org in a browser
-- `sf org create scratch`: Create a scratch org
-- `sf project deploy start`: Deploy metadata to your org
-- `sf project retrieve start`: Retrieve metadata from your org
-- `sf template generate <artifact>`: Scaffold new components, such as Apex classes and triggers, LWC components, Lightning apps, and more
-- `sf apex <command>`: Run Apex tests, run anonymous Apex blocks, and view logs
-- `sf data <command>`: Work with test data
-- `sf alias <command>`: Manage org aliases
-- `sf config <command>`: Configure CLI settings
+### 3.2 管理者
 
-## Use Agentforce Vibes to Build Lightning Apps
+管理者は、全社員の勤怠情報及び休暇情報を管理する。
 
-Transform your ideas into custom Lightning apps that extend CRM workflows directly in Lightning Experience. Through natural conversations with Agentforce Vibes, implement custom objects and fields, complex business logic, and dynamic UI components. See [Build a Lightning App Using Agentforce Vibes](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/lexapp-overview.html).
+主な操作：
 
-## Additional Resources
+* 全社員の勤怠確認
+* 全社員の勤怠管理
+* 全社員の休暇状況確認
 
-- [Agentforce Vibes Developer Guide](https://developer.salesforce.com/docs/platform/einstein-for-devs/guide/einstein-overview.html)
-- [Salesforce CLI Installation Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/)
-- [Salesforce CLI Plugin Development Guide](https://developer.salesforce.com/docs/platform/salesforce-cli-plugin/guide/conceptual-overview.html)
-- [Salesforce VS Code Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
+---
 
+## 4. 基本機能
+
+| No. | 機能     | 内容                       | 優先度  |
+| --: | ------ | ------------------------ | ---- |
+|   1 | 出勤打刻   | ボタン押下時の日時を出勤日時として登録する    | 必須   |
+|   2 | 退勤打刻   | ボタン押下時の日時を退勤日時として登録する    | 必須   |
+|   3 | 勤怠確認   | 自分の勤怠情報を確認する             | 必須   |
+|   4 | 勤怠修正   | 社員本人が自身の勤怠情報を修正する        | 必須   |
+|   5 | 修正履歴   | 勤怠情報の変更履歴を記録する           | 必須   |
+|   6 | 休暇管理   | 休暇情報を登録・確認する             | 必須   |
+|   7 | 勤務時間計算 | 出退勤及び休憩時間から実働時間を自動計算する   | 必須   |
+|   8 | 残業時間計算 | 実働時間と所定労働時間から残業時間を自動計算する | 必須   |
+|   9 | 管理者機能  | 管理者が全社員の勤怠情報を確認・管理する     | 必須   |
+|  10 | 打刻忘れ通知 | 出退勤等の打刻忘れを通知する           | 今後追加 |
+
+---
+
+## 5. 勤怠管理
+
+### 5.1 出勤・退勤
+
+出勤及び退勤は、画面上のボタンを押下して登録する。
+
+社員が日時を直接入力するのではなく、ボタン押下時の日時をシステムが取得して登録する。
+
+例：
+
+```text
+出勤
+  ↓
+出勤ボタン押下
+  ↓
+押下日時を出勤日時として登録
+```
+
+```text
+退勤
+  ↓
+退勤ボタン押下
+  ↓
+押下日時を退勤日時として登録
+```
+
+### 5.2 休憩
+
+休憩時間は固定時間として扱う。
+
+休憩時間の具体的な時間帯については、今後決定する。
+
+### 5.3 勤務時間
+
+出勤日時、退勤日時及び休憩時間から実働時間を自動計算する。
+
+計算例：
+
+```text
+出勤       09:00
+退勤       18:00
+休憩       01:00
+----------------
+実働       08:00
+```
+
+### 5.4 残業時間
+
+所定労働時間と実働時間との差分から残業時間を自動計算する。
+
+計算例：
+
+```text
+実働       10:00
+所定労働   08:00
+----------------
+残業       02:00
+```
+
+所定労働時間の具体的な設定値については、今後決定する。
+
+---
+
+## 6. 勤怠修正
+
+社員は、自身の勤怠情報を修正できる。
+
+修正対象の例：
+
+* 出勤時刻
+* 退勤時刻
+* 勤怠情報
+
+勤怠情報を修正した場合は、変更前後の情報、変更者及び変更日時などの修正履歴を記録する。
+
+### 修正履歴の例
+
+```text
+変更前：退勤 17:00
+変更後：退勤 18:00
+変更者：社員本人
+変更日時：2026/08/11 09:15
+```
+
+修正理由を必須入力とするか、修正可能な期間を制限するかなどの詳細仕様は今後決定する。
+
+---
+
+## 7. 休暇管理
+
+休暇情報をSalesforce上で管理する。
+
+第1版では、以下の休暇を対象とする。
+
+* 有給休暇
+* 半日休暇
+* 欠勤
+
+休暇の登録及び取得履歴の確認を可能とする。
+
+### 今後検討する機能
+
+* 有給休暇の付与
+* 有給休暇の残日数管理
+* 有給休暇の繰越
+* 休暇申請・承認
+
+法定有給休暇の付与・繰越・残日数計算については、勤怠管理の基本機能完成後に検討する。
+
+---
+
+## 8. 権限
+
+利用者によって参照・操作できる勤怠情報を制御する。
+
+### 社員
+
+```text
+自分の勤怠情報
+    ↓
+閲覧・修正可能
+
+他社員の勤怠情報
+    ↓
+閲覧不可
+```
+
+### 管理者
+
+```text
+全社員の勤怠情報
+    ↓
+閲覧・管理可能
+```
+
+Salesforceのプロファイル、権限セット及び共有設定等を利用してアクセス制御を実装する。
+
+---
+
+## 9. 画面構成
+
+第1版では、以下の画面を想定する。
+
+### 9.1 ホーム画面
+
+* 本日の勤怠状況
+* 出勤ボタン
+* 退勤ボタン
+* 出勤時刻
+* 退勤時刻
+* 実働時間
+
+### 9.2 自分の勤怠画面
+
+* 日別勤怠一覧
+* 月別勤怠一覧
+* 出勤時刻
+* 退勤時刻
+* 休憩時間
+* 実働時間
+* 残業時間
+
+### 9.3 勤怠修正画面
+
+* 修正対象日
+* 出勤時刻
+* 退勤時刻
+* 修正理由
+* 修正履歴
+
+### 9.4 休暇画面
+
+* 休暇登録
+* 休暇種別
+* 休暇日
+* 取得単位
+* 休暇履歴
+
+### 9.5 管理者画面
+
+* 社員一覧
+* 全社員の勤怠情報
+* 勤務時間
+* 残業時間
+* 休暇状況
+
+---
+
+## 10. 通知機能
+
+通知機能は第1版では実装せず、今後追加する。
+
+追加候補：
+
+* 出勤打刻忘れ
+* 退勤打刻忘れ
+* 勤怠修正に関する通知
+* 休暇に関する通知
+
+---
+
+## 11. Salesforce実装方針
+
+本アプリはSalesforce上に構築する。
+
+想定する主なSalesforce機能：
+
+* カスタムオブジェクト
+* カスタム項目
+* Lightning Web Components（LWC）
+* Apex
+* Flow
+* 権限セット
+* 共有設定
+* カスタム通知
+
+機能ごとに、標準機能、Flow、Apex、LWCの中から適切な実装方法を選択する。
+
+---
+
+## 12. データ管理
+
+勤怠情報及び休暇情報はSalesforce上で管理する。
+
+現時点で想定するデータ：
+
+### 勤怠情報
+
+* 社員
+* 勤怠日
+* 出勤日時
+* 退勤日時
+* 休憩時間
+* 実働時間
+* 所定労働時間
+* 残業時間
+* 修正情報
+
+### 休暇情報
+
+* 社員
+* 休暇日
+* 休暇種別
+* 取得単位
+* 備考
+* 登録日時
+
+具体的なオブジェクト構成及び項目定義は、要件確定後に設計する。
+
+---
+
+## 13. 第1版の対象範囲
+
+### 実装対象
+
+* 出勤打刻
+* 退勤打刻
+* 休憩時間管理
+* 勤怠確認
+* 勤怠修正
+* 修正履歴
+* 勤務時間自動計算
+* 残業時間自動計算
+* 休暇管理
+* 社員・管理者の権限制御
+* 管理者による全社員の勤怠管理
+
+### 第1版では対象外
+
+* 打刻忘れ通知
+* 有給休暇の自動付与
+* 有給休暇の繰越
+* 高度な休暇残日数計算
+* 給与計算
+* 給与システムとの連携
+* QRコードによる打刻
+
+---
+
+## 14. 今後決定する事項
+
+以下は今後、詳細要件として決定する。
+
+* 所定労働時間
+* 固定休憩時間
+* 勤怠修正可能期間
+* 修正理由の必須／任意
+* 修正履歴の保持期間
+* 休暇の詳細仕様
+* 有給休暇の残日数管理方法
+* 管理者の範囲
+* 勤怠の締め処理
+* 月次確定の要否
+* 土日・祝日の扱い
+* 時間外労働の計算方法
+* 深夜勤務の扱い
+* 日をまたぐ勤務の扱い
+* エラー時の処理
+* 通知機能の詳細
+
+---
+
+## 15. 開発方針
+
+本アプリは、Salesforceの標準機能を可能な限り活用し、必要に応じてApex及びLightning Web Componentsを使用する。
+
+また、開発したソースコード及びメタデータはGitで管理し、変更履歴を残す。
+
+開発時には、以下の流れで進める。
+
+```text
+要件定義
+  ↓
+基本設計
+  ↓
+データ設計
+  ↓
+画面設計
+  ↓
+実装
+  ↓
+単体テスト
+  ↓
+結合テスト
+  ↓
+総合テスト
+  ↓
+リリース
+```
+
+---
+
+## 16. 開発環境
+
+| 項目       | 使用技術・環境                  |
+| -------- | ------------------------ |
+| プラットフォーム | Salesforce               |
+| 開発環境     | Visual Studio Code       |
+| CLI      | Salesforce CLI           |
+| バージョン管理  | Git                      |
+| フロントエンド  | Lightning Web Components |
+| サーバーサイド  | Apex                     |
+| 自動化      | Flow                     |
+| AI支援     | 必要に応じてAI開発ツールを利用         |
+
+---
+
+## 17. 今後の拡張
+
+第1版完成後、以下の機能追加を検討する。
+
+* 打刻忘れ通知
+* 勤怠修正通知
+* 休暇申請・承認
+* 有給休暇残日数管理
+* 月次勤怠締め
+* 勤怠集計ダッシュボード
+* CSV出力
+* QRコード打刻
+* 外部システム連携
